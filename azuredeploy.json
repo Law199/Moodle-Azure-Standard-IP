@@ -7,7 +7,7 @@
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
             },
-            "defaultValue": "https://raw.githubusercontent.com/Azure/Moodle/master/"
+            "defaultValue": "https://raw.githubusercontent.com/Law199/Moodle-Azure-Standard-IP/master/"
         },
         "_artifactsLocationSasToken": {
             "type": "securestring",
@@ -792,6 +792,17 @@
             },
             "type": "string"
         },
+        "publicIpSku": {
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Basic",
+                "Standard"
+            ],
+            "metadata": {
+                "description": "Public IP SKU for controller and gateway public IP resources. Use Standard to avoid Basic SKU issues on current Azure deployments."
+            },
+            "type": "string"
+        },
         "ubuntuVersion": {
             "type": "string",
             "allowedValues": [
@@ -840,7 +851,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'network.json',parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'network.json',variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -856,7 +867,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'storageAccount.json',parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'storageAccount.json',variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -890,7 +901,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'db-', parameters('dbServerType'), '.json', parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'db-', parameters('dbServerType'), '.json', variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -907,7 +918,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'recoveryservices.json',parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'recoveryservices.json',variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -930,7 +941,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'redis.json', parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'redis.json', variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -954,7 +965,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'search-', parameters('searchType'), '.json', parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'search-', parameters('searchType'), '.json', variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -978,7 +989,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'tika.json', parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'tika.json', variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -1002,7 +1013,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'gluster.json',parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'gluster.json',variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -1022,7 +1033,7 @@
                         "value": "[parameters('_artifactsLocation')]"
                     },
                     "_artifactsLocationSasToken": {
-                        "value": "[parameters('_artifactsLocationSasToken')]"
+                        "value": "[variables('normalizedArtifactsSasToken')]"
                     },
                     "location": {
                         "value": "[parameters('location')]"
@@ -1074,7 +1085,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'nfs-ha.json', parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl, 'nfs-ha.json', variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -1112,7 +1123,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'vmsetupparams.json',parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'vmsetupparams.json',variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -1148,7 +1159,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'controller.json',parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'controller.json',variables('normalizedArtifactsSasToken'))]"
                 }
             }
         },
@@ -1177,7 +1188,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'webvmss.json',parameters('_artifactsLocationSasToken'))]"
+                    "uri": "[concat(variables('moodleCommon').baseTemplateUrl,'webvmss.json',variables('normalizedArtifactsSasToken'))]"
                 }
             }
         }
@@ -1244,10 +1255,11 @@
         "documentation09": "    webvmss             - creates a vm scale set",
         "documentation10": "    controller          - creates a controller VM and deploys code",
         "documentation11": "GlusterFS Sizing guidance",
+        "normalizedArtifactsSasToken": "[if(empty(parameters('_artifactsLocationSasToken')), '', if(startsWith(parameters('_artifactsLocationSasToken'), '?'), parameters('_artifactsLocationSasToken'), concat('?', parameters('_artifactsLocationSasToken'))))]",
         "moodleCommon": {
             "baseTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/')]",
             "scriptLocation": "[concat(parameters('_artifactsLocation'), 'scripts/')]",
-            "artifactsSasToken": "[parameters('_artifactsLocationSasToken')]",
+            "artifactsSasToken": "[variables('normalizedArtifactsSasToken')]",
             "appGwBePoolName": "[concat('appgw-bepool-', variables('resourceprefix'))]",
             "appGwName": "[concat('appgw-', variables('resourceprefix'))]",
             "appGwPipName": "[concat('appgw-pubip-',variables('resourceprefix'))]",
@@ -1267,7 +1279,7 @@
             "azureSearchPartitionCount": "[parameters('azureSearchPartitionCount')]",
             "azureSearchReplicaCount": "[parameters('azureSearchReplicaCount')]",
             "azureSearchSku": "[parameters('azureSearchSku')]",
-            "commonFunctionsScriptUri": "[concat(parameters('_artifactsLocation'),'scripts/helper_functions.sh',parameters('_artifactsLocationSasToken'))]",
+            "commonFunctionsScriptUri": "[concat(parameters('_artifactsLocation'),'scripts/helper_functions.sh',variables('normalizedArtifactsSasToken'))]",
             "controllerVmSku": "[parameters('controllerVmSku')]",
             "customVnetId": "[parameters('customVnetId')]",
             "ctlrNicName": "[concat('controller-vm-nic-',variables('resourceprefix'))]",
@@ -1333,6 +1345,7 @@
             "lbOutPipName002": "[concat('lb-outpubip002-',variables('resourceprefix'))]",
             "location": "[parameters('location')]",
             "moodleAdminPass": "[concat(toUpper('xl'), substring(uniqueString(resourceGroup().id, deployment().name), 6, 7),',1*8')]",
+            "publicIpSku": "[parameters('publicIpSku')]",
             "moodleDbName": "[parameters('moodleDbName')]",
             "moodleDbPass": "[concat('9#36^', substring(uniqueString(resourceGroup().id, deployment().name), 5, 8), toUpper('ercq'))]",
             "moodleDbUser": "[parameters('moodleDbUser')]",

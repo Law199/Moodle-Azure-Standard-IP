@@ -110,8 +110,11 @@
             "apiVersion": "2019-11-01",
             "location": "[parameters('moodleCommon').location]",
             "name": "[parameters('moodleCommon').gatewayPublicIPName]",
+            "sku": {
+                "name": "[parameters('moodleCommon').publicIpSku]"
+            },
             "properties": {
-                "publicIPAllocationMethod": "Dynamic"
+                "publicIPAllocationMethod": "[if(equals(parameters('moodleCommon').publicIpSku, 'Standard'), 'Static', 'Dynamic')]"
             },
             "tags": {
                 "displayName": "Virtual network gateway Public IP"
@@ -234,11 +237,14 @@
             "apiVersion": "2019-11-01",
             "location": "[parameters('moodleCommon').location]",
             "name": "[parameters('moodleCommon').ctlrPipName]",
+            "sku": {
+                "name": "[parameters('moodleCommon').publicIpSku]"
+            },
             "properties": {
                 "dnsSettings": {
                     "domainNameLabel": "[parameters('moodleCommon').ctlrPipName]"
                 },
-                "publicIPAllocationMethod": "Static"
+                "publicIPAllocationMethod": "[if(equals(parameters('moodleCommon').publicIpSku, 'Standard'), 'Static', 'Dynamic')]"
             },
             "tags": {
                 "displayName": "Controller VM Public IP"
