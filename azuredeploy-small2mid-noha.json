@@ -32,6 +32,30 @@
                 "description": "Public IP SKU for controller and gateway public IP resources. Use Standard to avoid Basic SKU issues on current Azure deployments."
             },
             "type": "string"
+        },
+        "controllerVmSku": {
+            "defaultValue": "Standard_DS1_v2",
+            "allowedValues": [
+                "Standard_DS1_v2",
+                "Standard_B2s_v2"
+            ],
+            "metadata": {
+                "description": "VM size for the controller VM"
+            },
+            "type": "string"
+        },
+        "autoscaleVmSku": {
+            "defaultValue": "Standard_DS2_v2",
+            "allowedValues": [
+                "Standard_DS2_v2",
+                "Standard_D2as_v5",
+                "Standard_D2as_v6",
+                "Standard_D2as_v7"
+            ],
+            "metadata": {
+                "description": "VM size for the Moodle web frontend VM scale set"
+            },
+            "type": "string"
         }
     },
     "resources": [
@@ -47,6 +71,8 @@
                     "redisDeploySwitch":            { "value": false },
                     "sshPublicKey":                 { "value": "[parameters('sshPublicKey')]" },
                     "publicIpSku":                 { "value": "[parameters('publicIpSku')]" },
+                    "controllerVmSku":              { "value": "[parameters('controllerVmSku')]" },
+                    "autoscaleVmSku":               { "value": "[parameters('autoscaleVmSku')]" },
                     "dbServerType":                 { "value": "mysqlflex" },
                     "vnetDbDeploySwitch":           {"value": true },
                     "mysqlflexSkuName":             { "value": "Standard_D8ds_v4" },
