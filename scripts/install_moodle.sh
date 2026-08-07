@@ -20,7 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set -ex
+set -e
+set -o pipefail
 
 #parameters 
 {
@@ -38,16 +39,11 @@ set -ex
     echo $dbIP                          >> /tmp/vars.txt
     echo $moodledbname                  >> /tmp/vars.txt
     echo $moodledbuser                  >> /tmp/vars.txt
-    echo $moodledbpass                  >> /tmp/vars.txt
-    echo $adminpass                     >> /tmp/vars.txt
     echo $dbadminlogin                  >> /tmp/vars.txt
     echo $dbadminloginazure             >> /tmp/vars.txt
-    echo $dbadminpass                   >> /tmp/vars.txt
     echo $storageAccountName            >> /tmp/vars.txt
-    echo $storageAccountKey             >> /tmp/vars.txt
     echo $azuremoodledbuser             >> /tmp/vars.txt
     echo $redisDns                      >> /tmp/vars.txt
-    echo $redisAuth                     >> /tmp/vars.txt
     echo $elasticVm1IP                  >> /tmp/vars.txt
     echo $installO365pluginsSwitch      >> /tmp/vars.txt
     echo $dbServerType                  >> /tmp/vars.txt
@@ -60,7 +56,6 @@ set -ex
     echo $thumbprintSslCert             >> /tmp/vars.txt
     echo $thumbprintCaCert              >> /tmp/vars.txt
     echo $searchType                    >> /tmp/vars.txt
-    echo $azureSearchKey                >> /tmp/vars.txt
     echo $azureSearchNameHost           >> /tmp/vars.txt
     echo $tikaVmIP                      >> /tmp/vars.txt
     echo $nfsByoIpExportPath            >> /tmp/vars.txt
@@ -533,9 +528,13 @@ EOF
    # restart Nginx
    sudo service nginx restart 
 
-   # Configure varnish startup for 16.04
-   VARNISHSTART="ExecStart=\/usr\/sbin\/varnishd -j unix,user=vcache -F -a :80 -T localhost:6082 -f \/etc\/varnish\/moodle.vcl -S \/etc\/varnish\/secret -s malloc,1024m -p thread_pool_min=200 -p thread_pool_max=4000 -p thread_pool_add_delay=2 -p timeout_linger=100 -p timeout_idle=30 -p send_timeout=1800 -p thread_pools=4 -p http_max_hdr=512 -p workspace_backend=512k"
-   sed -i "s/^ExecStart.*/${VARNISHSTART}/" /lib/systemd/system/varnish.service
+   # Configure Varnish startup
+   mkdir -p /etc/systemd/system/varnish.service.d
+   cat <<EOF > /etc/systemd/system/varnish.service.d/moodle.conf
+[Service]
+ExecStart=
+ExecStart=/usr/sbin/varnishd -j unix,user=vcache -F -a :80 -T localhost:6082 -f /etc/varnish/moodle.vcl -S /etc/varnish/secret -s malloc,1024m -p thread_pool_min=200 -p thread_pool_max=4000 -p thread_pool_add_delay=2 -p timeout_linger=100 -p timeout_idle=30 -p send_timeout=1800 -p thread_pools=4 -p http_max_hdr=512 -p workspace_backend=512k
+EOF
 
    # Configure varnish VCL for moodle
    cat <<EOF >> /etc/varnish/moodle.vcl

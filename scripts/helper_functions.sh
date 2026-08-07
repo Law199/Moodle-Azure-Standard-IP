@@ -12,10 +12,21 @@ function wait_for_process {
 function apt_update_noninteractive {
   export DEBIAN_FRONTEND='noninteractive'
 
-  # waiting for apt to finish before running any other commands
-  wait_for_process apt;
+  local attempt
+  for attempt in 1 2 3; do
+    # waiting for apt to finish before running any other commands
+    wait_for_process apt;
 
-  apt --yes -qq -o=Dpkg::Use-Pty=0 update
+    if apt --yes -qq -o=Dpkg::Use-Pty=0 -o Acquire::Retries=3 update; then
+      return 0
+    fi
+
+    if [ "$attempt" -lt 3 ]; then
+      sleep 10
+    fi
+  done
+
+  return 1
 }
 
 function apt_install_noninteractive {
@@ -26,6 +37,11 @@ function apt_install_noninteractive {
   # waiting for apt to finish before running any other commands
   wait_for_process apt;
 
+  if apt --yes --no-install-recommends -qq -o=Dpkg::Use-Pty=0 -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${@}"; then
+    return 0
+  fi
+
+  apt_update_noninteractive
   apt --yes --no-install-recommends -qq -o=Dpkg::Use-Pty=0 -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${@}"
 }
 
