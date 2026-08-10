@@ -772,6 +772,8 @@ pm.start_servers = 16
 pm.max_requests = 300000
 EOF
 
+     php-fpm${PhpVer} -t
+
      # Restart fpm
      service php${PhpVer}-fpm restart
    fi

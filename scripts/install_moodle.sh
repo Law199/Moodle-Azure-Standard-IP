@@ -517,10 +517,12 @@ listen.owner = www-data
 listen.group = www-data
 pm = dynamic
 pm.max_children = 3000
-pm.start_servers = 20 
-pm.min_spare_servers = 22 
-pm.max_spare_servers = 30 
+pm.start_servers = 22
+pm.min_spare_servers = 22
+pm.max_spare_servers = 30
 EOF
+
+   php-fpm${PhpVer} -t
 
    # Remove the default site. Moodle is the only site we want
    rm -f /etc/nginx/sites-enabled/default
