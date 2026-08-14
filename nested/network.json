@@ -255,7 +255,12 @@
             "type": "Microsoft.Network/loadBalancers",
             "sku": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, createObject('name', 'Standard', 'tier', 'Regional'), createObject('name', parameters('moodleCommon').lbSku, 'tier', parameters('moodleCommon').lbTier))]",
             "apiVersion": "2019-11-01",
-            "dependsOn": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, createArray('Microsoft.Resources/deployments/subnetTemplate'), createArray(concat('Microsoft.Network/publicIPAddresses/', parameters('moodleCommon').lbPipName), concat('Microsoft.Network/publicIPAddresses/', parameters('moodleCommon').lbOutPipName001), concat('Microsoft.Network/publicIPAddresses/', parameters('moodleCommon').lbOutPipName002)))]",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/subnetTemplate",
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('moodleCommon').lbPipName)]",
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('moodleCommon').lbOutPipName001)]",
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('moodleCommon').lbOutPipName002)]"
+            ],
             "location": "[parameters('moodleCommon').location]",
             "name": "[parameters('moodleCommon').lbName]",
             "properties": {
