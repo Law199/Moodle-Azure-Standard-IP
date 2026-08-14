@@ -56,7 +56,7 @@ This template set *optionally* configures the following additional infrastructur
 
 - [Azure Backup](https://azure.microsoft.com/en-us/services/backup/) for Moodle site backups
 - [Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/) for ObjectFS (Moodle sitedata)
-- [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) for SSL offloading and WAF
+- [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) for SSL offloading and WAF (see [connecting an externally-managed Application Gateway to an internal-LB deployment](docs/ExternalAppGw.md) if the Application Gateway lives outside this template)
 - [Azure Redis Cache](https://azure.microsoft.com/en-us/services/cache/) instance for Moodle caching
 - [Azure DDoS Protection](https://azure.microsoft.com/en-us/services/ddos-protection/) plan to secure your Moodle site from DDoS attacks
 - [Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault/) for storing your CA Cert for your Moodle site
