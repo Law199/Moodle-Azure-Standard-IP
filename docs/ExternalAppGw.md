@@ -30,16 +30,31 @@ for the App Gateway wiring below.
 ## Architecture recap
 
 - Each Moodle node (controller + every VMSS web instance) runs its own nginx + Varnish
-  stack and terminates real TLS itself (`httpsTermination: VMSS`, the default). There
-  is no central place where a certificate lives — every node has its own copy.
+  stack and terminates real TLS itself (`httpsTermination: VMSS`, the default).
+- With `fileServerType: nfs` (used in this deployment), `/moodle` — including
+  `/moodle/certs/nginx.crt`/`nginx.key` — is **shared**: the controller acts as the NFS
+  server, and every VMSS instance mounts `/moodle` from it. Only `install_moodle.sh`
+  (controller) ever generates the self-signed cert; `setup_webserver.sh` (VMSS
+  instances) just reads whatever's already there over NFS. This means there's only
+  ever **one** cert in play across the whole farm, and scaling out the VMSS does *not*
+  generate a new one — confirm this holds for your `fileServerType` if it differs
+  (e.g. `azurefiles`/`gluster`), since the sharing mechanism differs.
+- The real risk isn't per-instance divergence — it's that `install_moodle.sh` used to
+  regenerate the self-signed cert (with a brand new random key) **unconditionally**
+  every time it ran, which would silently invalidate whatever cert an external
+  Application Gateway/proxy had already trusted, on any controller re-provisioning
+  event (extension re-run, VM reimage/repair — not just first deploy). This has been
+  fixed to skip regeneration if a cert/key pair already exists at
+  `/moodle/certs/nginx.crt`/`.key`.
 - The internal Load Balancer's frontend private IP is always the `.10` host in the web
   subnet (`lbPrivateIP` in `nested/network.json`) — this is what the App Gateway's
   backend pool should point at, not an individual instance IP.
 - The LB passes both `:80` (Varnish) and `:443` (nginx TLS) straight through to
   whichever instance answers — it does not terminate TLS itself.
-- The **controller is not part of the VMSS backend pool** the LB balances across. If you
-  change anything (e.g. regenerate a cert) on the controller, it has zero effect on what
-  the LB/App Gateway actually reaches — you must change it on the VMSS instance(s) too.
+- The **controller is not part of the VMSS backend pool** the LB balances across, so it
+  never actually receives production traffic through the LB/App Gateway path — but
+  since it's the NFS server hosting `/moodle/certs`, it's still the machine you need to
+  touch if you ever need to rotate the cert deliberately.
 
 ## App Gateway configuration checklist
 
