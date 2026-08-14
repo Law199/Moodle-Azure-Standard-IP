@@ -1,0 +1,105 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "_artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
+            },
+            "defaultValue": "https://raw.githubusercontent.com/Law199/Moodle-Azure-Standard-IP/master/"
+        },
+        "_artifactsLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated."
+            },
+            "defaultValue": ""
+        },
+        "sshPublicKey": {
+            "metadata": {
+                "description": "ssh public key"
+            },
+            "type": "string"
+        },
+        "publicIpSku": {
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Basic",
+                "Standard"
+            ],
+            "metadata": {
+                "description": "Public IP SKU for controller and gateway public IP resources. Use Standard to avoid Basic SKU issues on current Azure deployments."
+            },
+            "type": "string"
+        },
+        "controllerVmSku": {
+            "defaultValue": "Standard_DS1_v2",
+            "allowedValues": [
+                "Standard_DS1_v2",
+                "Standard_B2s_v2"
+            ],
+            "metadata": {
+                "description": "VM size for the controller VM"
+            },
+            "type": "string"
+        },
+        "autoscaleVmSku": {
+            "defaultValue": "Standard_DS1_v2",
+            "allowedValues": [
+                "Standard_DS1_v2",
+                "Standard_D2as_v5",
+                "Standard_D2as_v6",
+                "Standard_D2as_v7"
+            ],
+            "metadata": {
+                "description": "VM size for the Moodle web frontend VM scale set"
+            },
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-01-01",
+            "name": "mainTemplate",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "_artifactsLocation":           { "value": "[parameters('_artifactsLocation')]" },
+                    "_artifactsLocationSasToken":   { "value": "[if(empty(parameters('_artifactsLocationSasToken')), '', if(startsWith(parameters('_artifactsLocationSasToken'), '?'), parameters('_artifactsLocationSasToken'), concat('?', parameters('_artifactsLocationSasToken'))))]" },
+                    "redisDeploySwitch":            { "value": false },
+                    "sshPublicKey":                 { "value": "[parameters('sshPublicKey')]" },
+                    "publicIpSku":                  { "value": "[parameters('publicIpSku')]" },
+                    "controllerVmSku":              { "value": "[parameters('controllerVmSku')]" },
+                    "autoscaleVmSku":               { "value": "[parameters('autoscaleVmSku')]" },
+                    "enableAccelNwForOtherVmsSwitch": { "value": false },
+                    "dbServerType":                 { "value": "mysqlflex" },
+                    "vnetDbDeploySwitch":           { "value": true },
+                    "fileServerDiskCount":          { "value": 2 },
+                    "fileServerDiskSize":           { "value": 32 },
+                    "internalLoadBalancerSwitch":   { "value": true }
+                },
+                "templateLink": {
+                    "uri": "[concat(parameters('_artifactsLocation'), 'azuredeploy.json', if(empty(parameters('_artifactsLocationSasToken')), '', if(startsWith(parameters('_artifactsLocationSasToken'), '?'), parameters('_artifactsLocationSasToken'), concat('?', parameters('_artifactsLocationSasToken')))))]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "mainTemplateOutputs": {
+            "type": "object",
+            "value": "[reference('mainTemplate').outputs]"
+        }
+    },
+    "variables": {
+        "documentation01": "This wrapper template calls the main-template with bare minimum configs and the only required parameter (sshPublicKey).",
+        "documentation02": "To speed up deployment and consume least resources, other parameters are fixed in this template and overridden as follows:",
+        "documentation03": "   - fileServerType: nfs",
+        "documentation04": "   - autoscaleVmSku: Standard_DS1_v2",
+        "documentation05": "   - fileServerDiskCount: 2",
+        "documentation06": "   - dbServerType: mysqlflex",
+        "documentation07": "   - redisDeploySwitch: false",
+        "documentation08": "   - internalLoadBalancerSwitch: true (with NAT Gateway for web-tier outbound access)"
+    }
+}

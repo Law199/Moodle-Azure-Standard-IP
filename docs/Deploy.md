@@ -97,6 +97,15 @@ JSON response from the previous deploy command. See [documentation on
 how to retrieve configuration data](./Get-Install-Data.md) along
 with full details of all the output parameters avialble to you.
 
+For the internal Load Balancer deployment variants, use the
+`internalLoadBalancerIP` output as the private backend address for an
+Application Gateway. The `natGatewayPublicIP` output is the stable
+outbound address for the web subnet and should not be used for inbound
+application traffic. The internal variants preserve the existing VMSS
+HTTPS termination behavior and expose private ports 80 and 443. When
+connecting an Application Gateway later, use HTTPS port 443 as the
+backend unless you separately change the VMSS termination mode.
+
 Note that by default the deployment uses a self-signed certificate,
 consequently you will recieve a warning when accessing the site. To
 add a genuine certificate see the documentation on [managing your

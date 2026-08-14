@@ -17,13 +17,55 @@
     },
     "resources": [
         {
+            "condition": "[parameters('moodleCommon').internalLoadBalancerSwitch]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2019-11-01",
+            "location": "[parameters('moodleCommon').location]",
+            "name": "[parameters('moodleCommon').natGatewayPipName]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4"
+            },
+            "tags": {
+                "displayName": "NAT Gateway Public IP"
+            }
+        },
+        {
+            "condition": "[parameters('moodleCommon').internalLoadBalancerSwitch]",
+            "type": "Microsoft.Network/natGateways",
+            "apiVersion": "2022-09-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('moodleCommon').natGatewayPipName)]"
+            ],
+            "location": "[parameters('moodleCommon').location]",
+            "name": "[parameters('moodleCommon').natGatewayName]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "idleTimeoutInMinutes": 10,
+                "publicIpAddresses": [
+                    {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('moodleCommon').natGatewayPipName)]"
+                    }
+                ]
+            },
+            "tags": {
+                "displayName": "Moodle NAT Gateway"
+            }
+        },
+        {
             "type": "Microsoft.Network/virtualNetworks/subnets",
-            "apiVersion": "2017-10-01",
+            "apiVersion": "2022-09-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/natGateways', parameters('moodleCommon').natGatewayName)]"
+            ],
             "name": "[concat(parameters('vnetName'), '/', parameters('moodleCommon').subnetWeb)]",
             "location": "[parameters('moodleCommon').location]",
-            "properties": {
-                "addressPrefix": "[parameters('moodleCommon').subnetWebRange]"
-            }
+            "properties": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, variables('webSubnetPropertiesWithNatGateway'), variables('webSubnetProperties'))]"
         },
         {
             "type": "Microsoft.Network/virtualNetworks/subnets",
@@ -123,6 +165,21 @@
     "variables": {
         "documentation01": "This sub-template creates various subnets needed for various components of the cluster.",
         "documentation02": "This needs to be done on a separate nested template, in order to allow to create subnets on a customer's BYO-vnet, which may be on a different subscription and/or on a different resource group.",
-        "documentation03": "The subnets are created one-by-one (using the dependsOn's), to avoid ARM's 'Another operation on this or dependent resource is in progress' failures"
+        "documentation03": "The subnets are created one-by-one (using the dependsOn's), to avoid ARM's 'Another operation on this or dependent resource is in progress' failures",
+        "webSubnetProperties": {
+            "addressPrefix": "[parameters('moodleCommon').subnetWebRange]"
+        },
+        "webSubnetPropertiesWithNatGateway": {
+            "addressPrefix": "[parameters('moodleCommon').subnetWebRange]",
+            "natGateway": {
+                "id": "[resourceId('Microsoft.Network/natGateways', parameters('moodleCommon').natGatewayName)]"
+            }
+        }
+    },
+    "outputs": {
+        "natGatewayPublicIP": {
+            "value": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, reference(parameters('moodleCommon').natGatewayPipName, '2019-11-01').ipAddress, '0.0.0.0')]",
+            "type": "string"
+        }
     }
 }

@@ -255,13 +255,13 @@
                 "id": "[variables('extBeID')]"
             }
         ],
-        "lbBePoolArrayTakeCount": "[if(equals(parameters('moodleCommon').httpsTermination, 'AppGw'), 0, 1)]",
+        "lbBePoolArrayTakeCount": "[if(and(equals(parameters('moodleCommon').httpsTermination, 'AppGw'), not(parameters('moodleCommon').internalLoadBalancerSwitch)), 0, 1)]",
         "appGwBePoolArray": [
             {
                 "id": "[variables('appGwBePoolId')]"
             }
         ],
-        "appGwBePoolArrayTakeCount": "[if(equals(parameters('moodleCommon').httpsTermination, 'AppGw'), 1, 0)]"
+        "appGwBePoolArrayTakeCount": "[if(and(equals(parameters('moodleCommon').httpsTermination, 'AppGw'), not(parameters('moodleCommon').internalLoadBalancerSwitch)), 1, 0)]"
     },
     "outputs": {
         "webvm1IP": {

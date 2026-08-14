@@ -16,11 +16,18 @@ In order to configure our deployment and tools we'll set up some
 The available output parameters are:
 
   - **siteURL**: If you provided a `siteURL` parameter when deploying this
-    will be set to the supplied value. Otherwise it will be the same as
-    the loadBalancerDNS, see below.
+    will be set to the supplied value. Otherwise it will be generated for
+    the public Load Balancer deployment. Internal Load Balancer variants
+    should be connected to an Application Gateway before using the site URL.
   - **loadBalancerDNS**: This is the DNS name of your application load
-    balancer. If you provided a `siteURL` parameter when deploying
-    you'll need to add a DNS entry to its CNAMEs pointing to this address.
+    balancer for public Load Balancer deployments. If you provided a
+    `siteURL` parameter when deploying you'll need to add a DNS entry to
+    its CNAMEs pointing to this address.
+  - **internalLoadBalancerIP**: The private frontend IP of the internal
+    Load Balancer for the internal Load Balancer deployment variants. Use
+    this address as the backend target for an Application Gateway.
+  - **natGatewayPublicIP**: The public IP used for outbound connectivity
+    from the web subnet in the internal Load Balancer deployment variants.
   - **moodleAdminPassword**: The generated password for the "admin" user
     in your Moodle install.
   - **controllerInstanceIP**: This is the IP address of the controller

@@ -738,6 +738,17 @@ Possible Values: ["RouteBased","PolicyBased"]
 Default: RouteBased
 
 
+### internalLoadBalancerSwitch
+
+Switch to deploy an internal Standard Load Balancer and a NAT Gateway for the web tier instead of a public Load Balancer. The internal Load Balancer uses a private frontend IP in the web subnet and is intended to be used as a private backend for an Application Gateway.
+
+Type: bool
+
+Possible Values: null
+
+Default: false
+
+
 ### loadBalancerSku
 
 Loadbalancer SKU

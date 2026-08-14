@@ -792,6 +792,13 @@
             },
             "type": "string"
         },
+        "internalLoadBalancerSwitch": {
+            "defaultValue": false,
+            "metadata": {
+                "description": "Switch to deploy an internal Load Balancer and NAT Gateway for the web tier instead of a public Load Balancer"
+            },
+            "type": "bool"
+        },
         "publicIpSku": {
             "defaultValue": "Standard",
             "allowedValues": [
@@ -1232,7 +1239,7 @@
         },
         "loadBalancerDNS": {
             "type": "string",
-            "value": "[variables('moodleCommon').lbDns]"
+            "value": "[if(variables('moodleCommon').internalLoadBalancerSwitch, '', variables('moodleCommon').lbDns)]"
         },
         "loadBalancerSku": {
             "type": "string",
@@ -1241,6 +1248,14 @@
         "loadBalancerTier": {
             "type": "string",
             "value": "[variables('moodleCommon').lbTier]"
+        },
+        "internalLoadBalancerIP": {
+            "type": "string",
+            "value": "[reference('networkTemplate').outputs.internalLbIP.value]"
+        },
+        "natGatewayPublicIP": {
+            "type": "string",
+            "value": "[reference('networkTemplate').outputs.natGatewayPublicIP.value]"
         }
     },
     "variables": {
@@ -1334,6 +1349,7 @@
             "installGdprPluginsSwitch": "[parameters('installGdprPluginsSwitch')]",
             "installO365pluginsSwitch": "[parameters('installO365pluginsSwitch')]",
             "installObjectFsSwitch": "[parameters('installObjectFsSwitch')]",
+            "internalLoadBalancerSwitch": "[parameters('internalLoadBalancerSwitch')]",
             "lbDns": "[concat('lb-',variables('resourceprefix'),'.',parameters('location'),'.cloudapp.azure.com')]",
             "lbSku": "[parameters('loadBalancerSku')]",
             "lbTier": "[parameters('loadBalancerTier')]",
@@ -1343,6 +1359,9 @@
             "lbPipName": "[concat('lb-pubip-',variables('resourceprefix'))]",
             "lbOutPipName001": "[concat('lb-outpubip001-',variables('resourceprefix'))]",
             "lbOutPipName002": "[concat('lb-outpubip002-',variables('resourceprefix'))]",
+            "lbPrivateIP": "[concat(variables('subnetWebPrefix'), '.10')]",
+            "natGatewayName": "[concat('natgw-',variables('resourceprefix'))]",
+            "natGatewayPipName": "[concat('natgw-pip-',variables('resourceprefix'))]",
             "location": "[parameters('location')]",
             "moodleAdminPass": "[concat(toUpper('xl'), substring(uniqueString(resourceGroup().id, deployment().name), 6, 7),',1*8')]",
             "publicIpSku": "[parameters('publicIpSku')]",
