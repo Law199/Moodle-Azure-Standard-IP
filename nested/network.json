@@ -337,7 +337,7 @@
                     }
                 ],
                 "inboundNatRules": [],
-                "outboundRules": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, createArray(), createArray(createObject('name', 'Outboundrule001', 'properties', createObject('allocatedOutboundPorts', 12800, 'protocol', 'Tcp', 'enableTcpReset', false, 'idleTimeoutInMinutes', 5, 'backendAddressPool', createObject('id', variables('extBeID')), 'frontendIPConfigurations', createArray(createObject('id', variables('extOutID001')), createObject('id', variables('extOutID002')))))))]",
+                "outboundRules": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, createArray(), createArray(createObject('name', 'Outboundrule001', 'properties', createObject('allocatedOutboundPorts', 12800, 'protocol', 'Tcp', 'enableTcpReset', bool('false'), 'idleTimeoutInMinutes', 5, 'backendAddressPool', createObject('id', variables('extBeID')), 'frontendIPConfigurations', createArray(createObject('id', variables('extOutID001')), createObject('id', variables('extOutID002')))))))]",
                 "inboundNatPools": []
             }
         },
