@@ -478,6 +478,8 @@ EOF
                 echo "CA cert was specified (/var/lib/waagent/$thumbprintCaCert.crt), so append it to nginx.crt..."
                 cat /var/lib/waagent/$thumbprintCaCert.crt >> /moodle/certs/nginx.crt
             fi
+        elif [ -s /moodle/certs/nginx.crt ] && [ -s /moodle/certs/nginx.key ]; then
+            echo "/moodle/certs is shared across nodes and already has a certificate; keeping the existing one instead of generating a new self-signed cert (avoids invalidating trust configured on any downstream proxy/gateway on every scale-out or instance repair)."
         else
             echo -e "Generating SSL self-signed certificate"
             openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /moodle/certs/nginx.key -out /moodle/certs/nginx.crt -subj "/C=US/ST=WA/L=Redmond/O=IT/CN=$siteFQDN"
