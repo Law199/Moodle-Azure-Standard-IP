@@ -22,6 +22,13 @@
             },
             "type": "string"
         },
+        "siteURL": {
+            "defaultValue": "www.example.org",
+            "metadata": {
+                "description": "URL for the Moodle site. Since this deployment uses an internal Load Balancer with no public DNS name, you must set this to the real public hostname that will front this deployment (e.g. the domain configured on your externally-managed Application Gateway). Leaving the default will result in Moodle generating broken links pointing at the internal Load Balancer's private DNS name."
+            },
+            "type": "string"
+        },
         "publicIpSku": {
             "defaultValue": "Standard",
             "allowedValues": [
@@ -70,6 +77,7 @@
                     "_artifactsLocationSasToken":   { "value": "[if(empty(parameters('_artifactsLocationSasToken')), '', if(startsWith(parameters('_artifactsLocationSasToken'), '?'), parameters('_artifactsLocationSasToken'), concat('?', parameters('_artifactsLocationSasToken'))))]" },
                     "redisDeploySwitch":            { "value": false },
                     "sshPublicKey":                 { "value": "[parameters('sshPublicKey')]" },
+                    "siteURL":                      { "value": "[parameters('siteURL')]" },
                     "publicIpSku":                  { "value": "[parameters('publicIpSku')]" },
                     "controllerVmSku":              { "value": "[parameters('controllerVmSku')]" },
                     "autoscaleVmSku":               { "value": "[parameters('autoscaleVmSku')]" },
