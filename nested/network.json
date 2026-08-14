@@ -251,159 +251,11 @@
             }
         },
         {
-            "condition": "[and(not(equals(parameters('moodleCommon').httpsTermination, 'AppGw')), not(parameters('moodleCommon').internalLoadBalancerSwitch))]",
+            "condition": "[or(and(not(equals(parameters('moodleCommon').httpsTermination, 'AppGw')), not(parameters('moodleCommon').internalLoadBalancerSwitch)), parameters('moodleCommon').internalLoadBalancerSwitch)]",
             "type": "Microsoft.Network/loadBalancers",
-            "sku": {
-                "name": "[parameters('moodleCommon').lbSku]",
-                "tier": "[parameters('moodleCommon').lbTier]"
-
-            },
+            "sku": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, createObject('name', 'Standard', 'tier', 'Regional'), createObject('name', parameters('moodleCommon').lbSku, 'tier', parameters('moodleCommon').lbTier))]",
             "apiVersion": "2019-11-01",
-            "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/',parameters('moodleCommon').lbPipName)]",
-                "[concat('Microsoft.Network/publicIPAddresses/',parameters('moodleCommon').lbOutPipName001)]",
-                "[concat('Microsoft.Network/publicIPAddresses/',parameters('moodleCommon').lbOutPipName002)]"
-            ],
-            "location": "[parameters('moodleCommon').location]",
-            "name": "[parameters('moodleCommon').lbName]",
-            "properties": {
-                "backendAddressPools": [
-                    {
-                        "name": "[parameters('moodleCommon').extBeName ]"
-                    }
-                ],
-                "frontendIPConfigurations": [
-                    {
-                        "name": "[parameters('moodleCommon').extFeName ]",
-                        "properties": {
-                            "publicIPAddress": {
-                                "id": "[variables('lbPipID')]"
-                            }
-                        }
-
-                    },
-                    {
-                        "name": "[parameters('moodleCommon').extOutName001 ]",
-                        "properties": {
-                            "publicIPAddress": {
-                                "id": "[variables('lbOutPip001ID')]"
-                            }
-                        }
-
-                    },
-                    {
-                        "name": "[parameters('moodleCommon').extOutName002 ]",
-                        "properties": {
-                            "publicIPAddress": {
-                                "id": "[variables('lbOutPip002ID')]"
-                            }
-                        }
-
-                    }
-                ],
-                "loadBalancingRules": [
-                    {
-                        "name": "HTTP",
-                        "properties": {
-                            "backendAddressPool": {
-                                "id": "[variables('extBeID')]"
-                            },
-                            "backendPort": 80,
-                            "enableFloatingIP": false,
-                            "enableTcpReset": false,
-                            "loadDistribution": "Default",
-                            "disableOutboundSnat": true,
-                            "frontendIPConfiguration": {
-                                "id": "[variables('extFeID')]"
-                            },
-                            "frontendPort": 80,
-                            "idleTimeoutInMinutes": 5,
-                            "probe": {
-                                "id": "[variables('extProbeHTTPID')]"
-                            },
-                            "protocol": "Tcp"
-                        }
-                    },
-                    {
-                        "name": "HTTPS",
-                        "properties": {
-                            "backendAddressPool": {
-                                "id": "[variables('extBeID')]"
-                            },
-                            "backendPort": 443,
-                            "enableFloatingIP": false,
-                            "enableTcpReset": false,
-                            "loadDistribution": "Default",
-                            "disableOutboundSnat": true,
-                            "frontendIPConfiguration": {
-                                "id": "[variables('extFeID')]"
-                            },
-                            "frontendPort": 443,
-                            "idleTimeoutInMinutes": 5,
-                            "probe": {
-                                "id": "[variables('extProbeHTTPSID')]"
-                            },
-                            "protocol": "Tcp"
-                        }
-                    }
-                ],
-                "probes": [
-                    {
-                        "name": "[parameters('moodleCommon').extProbeHTTP  ]",
-                        "properties": {
-                            "intervalInSeconds": 5,
-                            "numberOfProbes": 3,
-                            "port": 80,
-                            "protocol": "Tcp"
-                        }
-                    },
-                    {
-                        "name": "[parameters('moodleCommon').extProbeHTTPS  ]",
-                        "properties": {
-                            "intervalInSeconds": 5,
-                            "numberOfProbes": 3,
-                            "port": 443,
-                            "protocol": "Tcp"
-                        }
-                    }
-                ],
-                "inboundNatRules": [],
-                "outboundRules": [
-                    {
-                        "name": "Outboundrule001",
-                        "properties": {
-                            "allocatedOutboundPorts": 12800,
-                            "protocol": "Tcp",
-                            "enableTcpReset": false,
-                            "idleTimeoutInMinutes": 5,
-                            "backendAddressPool": {
-                                "id": "[variables('extBeID')]"
-                            },
-                            "frontendIPConfigurations": [
-                                {
-                                    "id": "[variables('extOutID001')]"
-                                },
-                                {
-                                    "id": "[variables('extOutID002')]"
-                                }
-                            ]
-                        }
-                    }
-                ],
-                "inboundNatPools": []
-            }
-        },
-        {
-            "condition": "[parameters('moodleCommon').internalLoadBalancerSwitch]",
-            "type": "Microsoft.Network/loadBalancers",
-            "sku": {
-                "name": "Standard",
-                "tier": "Regional"
-            },
-            "apiVersion": "2019-11-01",
-            "dependsOn": [
-                "Microsoft.Resources/deployments/subnetTemplate"
-            ],
+            "dependsOn": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, createArray('Microsoft.Resources/deployments/subnetTemplate'), createArray(concat('Microsoft.Network/publicIPAddresses/', parameters('moodleCommon').lbPipName), concat('Microsoft.Network/publicIPAddresses/', parameters('moodleCommon').lbOutPipName001), concat('Microsoft.Network/publicIPAddresses/', parameters('moodleCommon').lbOutPipName002)))]",
             "location": "[parameters('moodleCommon').location]",
             "name": "[parameters('moodleCommon').lbName]",
             "properties": {
@@ -412,18 +264,7 @@
                         "name": "[parameters('moodleCommon').extBeName]"
                     }
                 ],
-                "frontendIPConfigurations": [
-                    {
-                        "name": "[parameters('moodleCommon').extFeName]",
-                        "properties": {
-                            "privateIPAddress": "[parameters('moodleCommon').lbPrivateIP]",
-                            "privateIPAllocationMethod": "Static",
-                            "subnet": {
-                                "id": "[variables('subnetIdWeb')]"
-                            }
-                        }
-                    }
-                ],
+                "frontendIPConfigurations": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, createArray(createObject('name', parameters('moodleCommon').extFeName, 'properties', createObject('privateIPAddress', parameters('moodleCommon').lbPrivateIP, 'privateIPAllocationMethod', 'Static', 'subnet', createObject('id', variables('subnetIdWeb'))))), createArray(createObject('name', parameters('moodleCommon').extFeName, 'properties', createObject('publicIPAddress', createObject('id', variables('lbPipID')))), createObject('name', parameters('moodleCommon').extOutName001, 'properties', createObject('publicIPAddress', createObject('id', variables('lbOutPip001ID')))), createObject('name', parameters('moodleCommon').extOutName002, 'properties', createObject('publicIPAddress', createObject('id', variables('lbOutPip002ID'))))))]",
                 "loadBalancingRules": [
                     {
                         "name": "HTTP",
@@ -491,7 +332,7 @@
                     }
                 ],
                 "inboundNatRules": [],
-                "outboundRules": [],
+                "outboundRules": "[if(parameters('moodleCommon').internalLoadBalancerSwitch, createArray(), createArray(createObject('name', 'Outboundrule001', 'properties', createObject('allocatedOutboundPorts', 12800, 'protocol', 'Tcp', 'enableTcpReset', false, 'idleTimeoutInMinutes', 5, 'backendAddressPool', createObject('id', variables('extBeID')), 'frontendIPConfigurations', createArray(createObject('id', variables('extOutID001')), createObject('id', variables('extOutID002')))))))]",
                 "inboundNatPools": []
             }
         },
