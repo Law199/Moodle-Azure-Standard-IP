@@ -137,6 +137,68 @@ place.
 4. **Re-extract the cert and update the App Gateway** (trusted root cert + hostname
    override), per the checklist above.
 
+## Replacing the self-signed cert with a real certificate
+
+Once things are working, you'll likely want to move off the self-signed cert. Since
+`/moodle/certs` is shared via NFS from the controller (see architecture recap above,
+and confirmed the idempotency fix means it won't get silently regenerated), you can
+just drop a real cert+key in place — no redeploy needed.
+
+1. **Get a real cert+key for `siteURL`'s domain.** Either issue a new one from your
+   org's CA / Let's Encrypt, or reuse the same cert+key already used for the App
+   Gateway's own public listener, if you still have that PFX/private key.
+
+2. **On the controller**, replace the files:
+   ```bash
+   sudo cp your-real-cert.pem /moodle/certs/nginx.crt
+   sudo cp your-real-key.pem /moodle/certs/nginx.key
+   sudo chown www-data:www-data /moodle/certs/nginx.*
+   sudo chmod 0400 /moodle/certs/nginx.*
+   sudo systemctl reload nginx
+   ```
+   This is the shared NFS path, so every existing instance sees the new file
+   immediately — but each instance's own nginx still needs its own reload to pick it
+   up (nginx doesn't automatically re-read cert files without a config reload):
+   ```bash
+   sudo systemctl reload nginx   # run on every VMSS instance too, not just the controller
+   ```
+
+3. **Update the App Gateway:**
+   - If the new cert is from a **publicly-trusted CA** (same category as the App
+     Gateway's own listener cert — Sectigo, Let's Encrypt, etc.), you can remove the
+     custom trusted root certificate entirely and let App Gateway validate against its
+     built-in trust store instead. Simpler to maintain going forward.
+   - If it's still self-signed or from a private/internal CA, re-extract and re-upload
+     as before:
+     ```bash
+     openssl s_client -connect <internal-LB-IP>:443 -servername <siteURL> </dev/null 2>/dev/null \
+       | openssl x509 > appgw-trusted-root.pem
+     az network application-gateway root-cert update -g <rg> --gateway-name <appgw-name> \
+       -n <trusted-root-cert-name> --cert-file appgw-trusted-root.pem
+     ```
+   - The backend HTTP settings' hostname override does **not** need to change, as long
+     as the new cert's CN/SAN still matches `siteURL` (which it should — see "Why the
+     hostname override matters" above for why this must always be true regardless of
+     which cert is in use).
+
+4. **Verify** with the same commands as the "Quick verification commands" section
+   below — confirm the `issuer` field is no longer self-signed (i.e. `issuer` differs
+   from `subject`) if you moved to a CA-issued cert, and that backend health is still
+   `Healthy`.
+
+### Longer-term alternative: Key Vault-backed cert (`thumbprintSslCert`)
+
+The template has a built-in mechanism for a centrally-managed cert instead of manual
+file placement: set the `thumbprintSslCert` (and `thumbprintCaCert` if needed)
+parameters, which makes `install_moodle.sh`/`setup_webserver.sh` pull the cert from
+`/var/lib/waagent/` — delivered there by Azure from a Key Vault certificate attached to
+the VM/VMSS `osProfile.secrets` — instead of self-signing. This survives future
+re-provisioning automatically (new instances get it for free), but requires a Key Vault
+with "Enabled for deployment" (ARM access) turned on, an update to the controller/VMSS
+resources' `osProfile.secrets` (a partial redeploy), and re-running provisioning on any
+already-existing instances to pick up the change. Worth it if you're planning to manage
+cert rotation long-term; overkill for a one-off fix.
+
 ## Quick verification commands
 
 From the controller, bypassing the LB to test a specific instance directly:
